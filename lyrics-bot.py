@@ -60,7 +60,7 @@ def handler(msg):
                 artist, music = get_info(page_link)
                 lyrics_text = scrap_lyrics(page_link)
                 message = template % (artist, music, lyrics_text)
-                if message > 4096:
+                if len(message) > 4096:
                     file_name = music + '_LyrixRobot.txt'
                     file = open(file_name, 'w')
                     file.write(lyrics_text)
