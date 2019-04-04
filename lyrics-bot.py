@@ -1,7 +1,7 @@
 import time
-
 import requests
 import os
+
 import telepot
 from telepot.loop import MessageLoop
 
@@ -46,11 +46,15 @@ def get_info(page_link):
 
 def handler(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
+    linked_str = '[%s](tg://user?id=%d)' % (msg['first_name'], msg['from']['id'])
     if content_type == 'text' and chat_type == u'private':
         if msg['text'] == '/start':
-            bot.sendMessage(chat_id, 'welcome')
+            bot.sendMessage(chat_id, 'Welcome')
+            if log_id:
+                bot.sendMessage(log_id, 'New user: ' + linked_str, 'Markdown')
 
         else:
+            artist, music = None, None
             try:
                 page_link = search(msg['text'])
                 artist, music = get_info(page_link)
@@ -63,9 +67,11 @@ def handler(msg):
 
             except Exception as ex:
                 bot.sendMessage(chat_id, 'Music not found!')
-                if admin_id:
-                    bot.sendMessage(admin_id, msg['text'])
-                    bot.sendMessage(admin_id, '```%s```' % str(ex), 'Markdown')
+                if log_id:
+                    bot.sendMessage(log_id, '```%s```' % str(ex), 'Markdown')
+
+            if log_id:
+                bot.sendMessage(log_id, log_template % (linked_str, msg['text'], artist, music), 'Markdown')
 
 
 if __name__ == '__main__':
