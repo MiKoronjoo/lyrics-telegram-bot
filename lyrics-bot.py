@@ -46,7 +46,7 @@ def get_info(page_link):
 
 def handler(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
-    linked_str = '[%s](tg://user?id=%d)' % (msg['first_name'], msg['from']['id'])
+    linked_str = '[%s](tg://user?id=%d)' % (msg['from']['first_name'], msg['from']['id'])
     if content_type == 'text' and chat_type == u'private':
         if msg['text'] == '/start':
             bot.sendMessage(chat_id, 'Welcome')
