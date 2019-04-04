@@ -59,8 +59,17 @@ def handler(msg):
                 page_link = search(msg['text'])
                 artist, music = get_info(page_link)
                 lyrics_text = scrap_lyrics(page_link)
+                message = template % (artist, music, lyrics_text)
+                if message > 4096:
+                    file_name = music + '_LyrixRobot.txt'
+                    file = open(file_name, 'w')
+                    file.write(lyrics_text)
+                    file.close()
+                    bot.sendDocument(chat_id,open(file_name), caption_template % (artist, music))
+                    os.system('rm ' + file_name)
+                    return
 
-                bot.sendMessage(chat_id, template % (artist, music, lyrics_text), 'Markdown')
+                bot.sendMessage(chat_id, message, 'Markdown')
 
             except AssertionError:
                 bot.sendMessage(chat_id, 'Music not found!')

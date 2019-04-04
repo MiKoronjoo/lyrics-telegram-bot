@@ -10,6 +10,10 @@ template = '''🎤 *%s*
 %s
 
 🆔 @LyrixRobot'''
+caption_template = '''🎤 *%s*
+🎵 *%s*
+
+🆔 @LyrixRobot'''
 log_template = '''👤 %s
 🔻
 %s
