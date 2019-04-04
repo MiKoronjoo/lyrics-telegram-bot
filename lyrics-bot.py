@@ -67,9 +67,9 @@ def handler(msg):
                     file.close()
                     bot.sendDocument(chat_id,open(file_name), caption_template % (artist, music), 'Markdown')
                     os.system('rm ' + file_name)
-                    return
 
-                bot.sendMessage(chat_id, message, 'Markdown')
+                else:
+                    bot.sendMessage(chat_id, message, 'Markdown')
 
             except AssertionError:
                 bot.sendMessage(chat_id, 'Music not found!')
