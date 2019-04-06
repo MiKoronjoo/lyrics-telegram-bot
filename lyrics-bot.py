@@ -4,6 +4,8 @@ import os
 
 import telepot
 from telepot.loop import MessageLoop
+from telepot.namedtuple import InlineQueryResultArticle, InputTextMessageContent, ChosenInlineResult, Update, \
+    InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import *
 from consts import *
@@ -44,7 +46,7 @@ def get_info(page_link):
     return artist, music
 
 
-def handler(msg):
+def on_chat_message(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     linked_str = '[%s](tg://user?id=%d)' % (msg['from']['first_name'], msg['from']['id'])
     if content_type == 'text' and chat_type == u'private':
@@ -83,9 +85,73 @@ def handler(msg):
                 bot.sendMessage(log_id, log_template % (linked_str, msg['text'], artist, music), 'Markdown')
 
 
+def on_inline_query(msg):
+    query_id, from_id, query_string = telepot.glance(msg, flavor='inline_query')
+    if not query_string:
+        return
+
+    artist, music = '', 'Music not found!'
+    page_link = ''
+    try:
+        page_link = search(query_string)
+        artist, music = get_info(page_link)
+        result = '*%s*\n*%s*' % (artist, music)
+
+    except AssertionError:
+        result = 'Music not found!'
+
+    except Exception as ex:
+        result = 'Music not found!'
+        if log_id:
+            bot.sendMessage(log_id, '```%s```' % str(ex), 'Markdown')
+
+    articles = [
+        InlineQueryResultArticle(
+            id='R1',
+            title=music,
+            input_message_content=InputTextMessageContent(
+                message_text=result,
+                parse_mode='Markdown'
+            ),
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[[InlineKeyboardButton(text='Show lyrics', callback_data=page_link)]]
+            ),
+            description=artist
+        )
+    ]
+    bot.answerInlineQuery(query_id, articles)
+
+
+def on_callback_query(msg):
+    query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
+    if query_data:
+        lyrics_text = scrap_lyrics(query_data)
+        # message = template % ('artist', 'music', lyrics_text)
+        # if len(message) > 4096:
+        #     file_name = 'music' + '_LyrixRobot.txt'
+        #     file = open(file_name, 'w')
+        #     file.write(lyrics_text)
+        #     file.close()
+        #     bot.sendDocument(chat_id, open(file_name), caption_template % (artist, music), 'Markdown')
+        #     os.system('rm "%s"' % file_name)
+        #
+        # else:
+        #     bot.sendMessage(chat_id, message, 'Markdown')
+        #
+        bot.editMessageText(msg['inline_message_id'], lyrics_text[:4096])
+
+
+def on_chosen_inline_result(msg):
+    result_id, from_id, query_string = telepot.glance(msg, flavor='chosen_inline_result')
+    print('Chosen Inline Result:', result_id, from_id, query_string)
+
+
 if __name__ == '__main__':
     bot = telepot.Bot(TOKEN)
-    MessageLoop(bot, handler).run_as_thread()
+    MessageLoop(bot, {'chat': on_chat_message,
+                      'inline_query': on_inline_query,
+                      'callback_query': on_callback_query,
+                      'chosen_inline_result': on_chosen_inline_result}).run_as_thread()
 
     while True:
         time.sleep(30)
