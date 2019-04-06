@@ -65,8 +65,8 @@ def handler(msg):
                     file = open(file_name, 'w')
                     file.write(lyrics_text)
                     file.close()
-                    bot.sendDocument(chat_id,open(file_name), caption_template % (artist, music), 'Markdown')
-                    os.system('rm ' + file_name)
+                    bot.sendDocument(chat_id, open(file_name), caption_template % (artist, music), 'Markdown')
+                    os.system('rm "%s"' % file_name)
 
                 else:
                     bot.sendMessage(chat_id, message, 'Markdown')
